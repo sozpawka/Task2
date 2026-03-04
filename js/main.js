@@ -61,15 +61,28 @@ Vue.component('card-form', {
 Vue.component('card', {
     props: ['card'],
     template: `
-      <div class="card">
-        <h4>{{ card.title }}</h4>
-        <ul>
-          <li v-for="(item, index) in card.items" :key="index">
-            <input type="checkbox" v-model="card.completedItems[index]" /> {{ item }}
-          </li>
-        </ul>
-        <button @click="$emit('complete')">Выполнить</button>
-      </div>
+        <div class="card" :class="{ 'completed-card': card.completedAt }">
+          <h4>{{ card.title }}</h4>
+          <ul>
+            <li v-for="(item, index) in card.items" :key="index">
+              <input type="checkbox" v-model="card.completedItems[index]" :disabled="card.completedAt" />
+              {{ item }}
+            </li>
+          </ul>
+
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: progress + '%' }">
+              {{ progress }}%
+            </div>
+          </div>
+
+          <button @click="$emit('complete')" :disabled="card.completedAt">
+            {{ card.completedAt ? 'Выполнено' : 'Выполнить' }}
+          </button>
+          <span v-if="card.completedAt" style="color: gray; margin-left: 10px;">
+            {{ card.completedAt }}
+          </span>
+        </div>
     `,
     data() {
         return {
@@ -79,7 +92,22 @@ Vue.component('card', {
     },
     mounted() {
         if(!this.card.completedItems) this.$set(this.card, 'completedItems', this.completedItems)
-    }
+    },
+    computed: {
+      percent() {
+          const total = this.card.items.length;
+          const completed = this.card.completedItems.filter(Boolean).length;
+          return Math.round((completed / total) * 100);
+      },
+      isLocked() {
+        return !!this.card.completedAt;
+    },
+      progress() {
+        const total = this.card.items.length;
+        const completed = this.card.completedItems.filter(Boolean).length;
+        return Math.round((completed / total) * 100);
+      }
+  },
 });
 
 new Vue({
@@ -121,25 +149,25 @@ new Vue({
             this.editingCard = null;
         },
         markComplete(column, index) {
-            const card = this.columns[column][index];
-            const total = card.items.length;
-            const completed = card.completedItems.filter(Boolean).length;
-            const percent = (completed / total) * 100;
-
-            if (column === 1 && percent >= 50 && this.columns[2].length < 5) {
-                this.columns[2].push(card);
-                this.columns[1].splice(index, 1);
-            }
-            if (column === 1 && percent === 100) {
-                this.columns[3].push(card);
-                this.columns[1].splice(index, 1);
-                card.completedAt = new Date().toLocaleString();
-            }
-            if (column === 2 && percent === 100) {
-                this.columns[3].push(card);
-                this.columns[2].splice(index, 1);
-                card.completedAt = new Date().toLocaleString();
-            }
-        }
+          const card = this.columns[column][index];
+          const total = card.items.length;
+          const completed = card.completedItems.filter(Boolean).length;
+          const percent = (completed / total) * 100;
+          if (percent === 100) {
+              this.columns[3].push(card);
+              this.columns[column].splice(index, 1);
+              card.completedAt = new Date().toLocaleString();
+              return;
+          }
+          if (column === 1 && percent >= 50 && this.columns[2].length < 5) {
+              this.columns[2].push(card);
+              this.columns[1].splice(index, 1);
+          }
+          if (column === 2 && percent === 100) {
+              this.columns[3].push(card);
+              this.columns[2].splice(index, 1);
+              card.completedAt = new Date().toLocaleString();
+          }
+      }
     }
 });
