@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ru">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport"
+         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+   <script defer src="js/main.js"></script>
+   <link rel="stylesheet" href="css/main.css">
+   <title>Заметки</title>
+</head>
+<body>
+<div id="app">
+  <div class="board">
+    <div class="column">
+      <h2>Колонка 1(минимум 3)</h2>
+      <button class="add-card" @click="addCard(1)">+ Add Card</button>
+      <card 
+        v-for="(card, index) in columns[1]" 
+        :key="card.id" 
+        :card="card"
+        @complete="markComplete(1, index)">
+      </card>
+    </div>
+    <div class="column">
+      <h2>Колонка 2(минимум 5)</h2>
+      <button class="add-card" @click="addCard(2)">+ Add Card</button>
+      <card 
+        v-for="(card, index) in columns[2]" 
+        :key="card.id" 
+        :card="card"
+        @complete="markComplete(2, index)">
+      </card>
+    </div>
+    <div class="column">
+      <h2>Колонка 3</h2>
+      <button class="add-card" @click="addCard(3)">+ Add Card</button>
+      <card 
+        v-for="(card, index) in columns[3]" 
+        :key="card.id" 
+        :card="card"
+        @complete="markComplete(3, index)">
+      </card>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
