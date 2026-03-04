@@ -12,9 +12,16 @@
 </head>
 <body>
 <div id="app">
+  <card-form 
+    v-if="showForm" 
+    :cardData="editingCard" 
+    @save="saveCard" 
+    @cancel="cancelForm">
+  </card-form>
+
   <div class="board">
     <div class="column">
-      <h2>Колонка 1(минимум 3)</h2>
+      <h2>Колонка 1 (макс 3)</h2>
       <button class="add-card" @click="addCard(1)">+ Add Card</button>
       <card 
         v-for="(card, index) in columns[1]" 
@@ -23,8 +30,9 @@
         @complete="markComplete(1, index)">
       </card>
     </div>
+
     <div class="column">
-      <h2>Колонка 2(минимум 5)</h2>
+      <h2>Колонка 2 (макс 5)</h2>
       <button class="add-card" @click="addCard(2)">+ Add Card</button>
       <card 
         v-for="(card, index) in columns[2]" 
@@ -33,6 +41,7 @@
         @complete="markComplete(2, index)">
       </card>
     </div>
+
     <div class="column">
       <h2>Колонка 3</h2>
       <button class="add-card" @click="addCard(3)">+ Add Card</button>
@@ -45,6 +54,5 @@
     </div>
   </div>
 </div>
-
 </body>
 </html>

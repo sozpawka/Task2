@@ -51,7 +51,7 @@ Vue.component('card-form', {
                 this.$emit('save', {
                     title: this.title,
                     items: this.items,
-                    completed: this.cardData ? this.cardData.completed : false,
+                    completed: false,
                     id: this.cardData ? this.cardData.id : Date.now()
                 });
             }
@@ -59,54 +59,87 @@ Vue.component('card-form', {
     }
 });
 Vue.component('card', {
-  props: ['card'],
-  template: `
-    <div class="card">
-      <h3>{{ card.title }}</h3>
-      <ul>
-        <li v-for="(item, idx) in card.items" :key="idx">
-          <input type="checkbox" v-model="item.done"> {{ item.text }}
-        </li>
-      </ul>
-      <button class="complete-btn" @click="$emit('complete')">Выполнено</button>
-    </div>
-  `
-})
+    props: ['card'],
+    template: `
+      <div class="card">
+        <h4>{{ card.title }}</h4>
+        <ul>
+          <li v-for="(item, index) in card.items" :key="index">
+            <input type="checkbox" v-model="card.completedItems[index]" /> {{ item }}
+          </li>
+        </ul>
+        <button @click="$emit('complete')">Выполнить</button>
+      </div>
+    `,
+    data() {
+        return {
+            cardData: this.card,
+            completedItems: this.card.items.map(() => false)
+        }
+    },
+    mounted() {
+        if(!this.card.completedItems) this.$set(this.card, 'completedItems', this.completedItems)
+    }
+});
 
 new Vue({
-  el: '#app',
-  data: {
-    columns: {
-      1: [],
-      2: [],
-      3: []
+    el: '#app',
+    data: {
+        columns: { 1: [], 2: [], 3: [] },
+        showForm: false,
+        editingCard: null,
+        editingColumn: null
     },
-    nextId: 1,
-    showForm: false,
-    editingCard: null,
-    editingColumn: null
-  },
-  methods: {
-    addCard(column) {
-      if ((column === 1 && this.columns[1].length >= 3) ||
-          (column === 2 && this.columns[2].length >= 5)) {
-        alert('Вы превысили максимум');
-        return;
-      }
-      const newCard = {
-        id: this.nextId++,
-        title: 'New Card ' + this.nextId,
-        items: [
-          { text: 'Task 1', done: false },
-          { text: 'Task 2', done: false },
-          { text: 'Task 3', done: false }
-        ]
-      };
-      this.columns[column].push(newCard);
-    },
-    markComplete(column, index) {
-      const card = this.columns[column][index];
-      alert(`Карточка "${card.title}" отмечена как выполненная`);
+    methods: {
+        addCard(column) {
+            if ((column === 1 && this.columns[1].length >= 3) || 
+                (column === 2 && this.columns[2].length >= 5)) {
+                alert("Вы превысили максимум");
+                return;
+            }
+            this.editingCard = null;
+            this.editingColumn = column;
+            this.showForm = true;
+        },
+        editCard(column, index) {
+            this.editingCard = this.columns[column][index];
+            this.editingColumn = column;
+            this.showForm = true;
+        },
+        saveCard(card) {
+            if (this.editingCard) {
+                const idx = this.columns[this.editingColumn].findIndex(c => c.id === card.id);
+                this.$set(this.columns[this.editingColumn], idx, card);
+            } else {
+                this.columns[this.editingColumn].push(card);
+            }
+            this.showForm = false;
+            this.editingCard = null;
+        },
+        cancelForm() {
+            this.showForm = false;
+            this.editingCard = null;
+        },
+        markComplete(column, index) {
+            const card = this.columns[column][index];
+            const total = card.items.length;
+            const completed = card.completedItems.filter(Boolean).length;
+            const percent = (completed / total) * 100;
+
+            if (column === 1 && percent >= 50 && this.columns[2].length < 5) {
+                this.columns[2].push(card);
+                this.columns[1].splice(index, 1);
+            }
+            if (column === 1 && percent === 100) {
+                this.columns[3].push(card);
+                this.columns[1].splice(index, 1);
+                card.completedAt = new Date().toLocaleString();
+            }
+            if (column === 2 && percent === 100) {
+                this.columns[3].push(card);
+                this.columns[2].splice(index, 1);
+                card.completedAt = new Date().toLocaleString();
+            }
+        }
     }
-  }
-})
+});

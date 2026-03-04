@@ -39,3 +39,53 @@
       color: white;
       border-radius: 3px;
 }
+.modal {
+  position: fixed; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  position: relative;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  text-align: center;
+  font-size: 1.3em;
+}
+
+.modal-content input[type="text"] {
+  width: 100%;
+  padding: 5px 8px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+.modal-content button {
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: black;
+}
+.modal-content .cancel-btn { background: red; }
+.modal-content .add-item-btn { background: #2196F3; margin-bottom: 10px; }
+.modal-content .item-input button { background: red; margin-left: 5px; }
+
+.modal-content .errors {
+  color: red;
+  margin-top: 10px;
+}
