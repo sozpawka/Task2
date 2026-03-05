@@ -115,3 +115,32 @@
     background: #f4f4f4;
     color: #555;
 }
+.card {
+  background-size: cover;
+  background-position: center;
+  color: black;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.theme-selector {
+  margin: 15px 0;
+}
+.theme-selector label {
+  display: block;
+  margin: 5px 0;
+  color: black;
+  cursor: pointer;
+}
+.theme-selector img {
+  width: 50px;
+  height: 50px;
+  margin-right: 5px;
+  border: 2px solid transparent;
+  border-radius: 5px;
+  vertical-align: middle;
+}
+.theme-selector img.selected {
+  border-color: #2196F3;
+}

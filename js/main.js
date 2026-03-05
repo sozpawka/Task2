@@ -8,17 +8,29 @@ Vue.component('card-form', {
             Заголовок:
             <input type="text" v-model="title" placeholder="Title" />
             </label>
+
             <div v-for="(item, index) in items" :key="index" class="item-input">
             <input type="text" v-model="items[index]" placeholder="Task" />
             <button @click="removeItem(index)" v-if="items.length > 3">-</button>
             </div>
+
             <button @click="addItem" :disabled="items.length >= 5">+ Add Item</button>
+
+            <div class="theme-selector">
+            <label v-for="theme in themes" :key="theme.name">
+                <input type="radio" v-model="selectedTheme" :value="theme.file" />
+                <img :src="theme.file" :class="{ selected: selectedTheme === theme.file }" />
+                {{ theme.name }}
+            </label>
+            </div>
+
             <div v-if="errors.length" class="errors">
             <b>Ошибки:</b>
             <ul>
                 <li v-for="err in errors" :key="err">{{ err }}</li>
             </ul>
             </div>
+
             <button @click="saveCard">Save</button>
             <button @click="$emit('cancel')">Cancel</button>
         </div>
@@ -28,37 +40,34 @@ Vue.component('card-form', {
         return {
             title: this.cardData ? this.cardData.title : '',
             items: this.cardData ? [...this.cardData.items] : ['', '', ''],
-            errors: []
+            errors: [],
+            themes: [
+                { name: 'Orange', file: 'assets/orange.jpg' },
+                { name: 'Blue', file: 'assets/blue.jpg' },
+                { name: 'Gold', file: 'assets/gold.jpg' }
+            ],
+            selectedTheme: this.cardData?.theme || 'assets/orange.jpg'
         }
     },
     methods: {
         addItem() {
-            if (this.items.length < 5) {
-                this.items.push('');
-            }
+            if (this.items.length < 5) this.items.push('');
         },
         removeItem(index) {
-            if (this.items.length > 3) {
-                this.items.splice(index, 1);
-            }
+            if (this.items.length > 3) this.items.splice(index, 1);
         },
         saveCard() {
             this.errors = [];
-
-            if (!this.title) {
-                this.errors.push("Заголовок обязателен");
-            }
-
-            if (this.items.slice(0,3).some(i => !i)) {
-                this.errors.push("Первые 3 пункта обязательны");
-            }
+            if (!this.title) this.errors.push("Заголовок обязателен");
+            if (this.items.slice(0,3).some(i => !i)) this.errors.push("Первые 3 пункта обязательны");
 
             if (this.errors.length === 0) {
                 this.$emit('save', {
                     title: this.title,
                     items: this.items,
-                    completedItems: this.cardData?.completedItems || this.items.map(() => false),
-                    completedAt: this.cardData?.completedAt || null,
+                    completedItems: this.cardData && this.cardData.completedItems ? this.cardData.completedItems : this.items.map(() => false),
+                    completedAt: this.cardData && this.cardData.completedAt ? this.cardData.completedAt : null,
+                    theme: this.selectedTheme,
                     id: this.cardData ? this.cardData.id : Date.now()
                 });
             }
@@ -68,7 +77,8 @@ Vue.component('card-form', {
 Vue.component('card', {
     props: ['card'],
     template: `
-        <div class="card" :class="{ 'completed-card': card.completedAt }">
+        <div class="card" :class="{ 'completed-card': card.completedAt }"
+             :style="{ backgroundImage: 'url(' + card.theme + ')', backgroundSize: 'cover', backgroundPosition: 'center' }">
             <h4>{{ card.title }}</h4>
 
             <ul>
@@ -93,6 +103,11 @@ Vue.component('card', {
             </span>
         </div>
     `,
+    data() {
+        return {
+            completedItems: this.card.completedItems || this.card.items.map(() => false)
+        }
+    },
     computed: {
         progress() {
             const total = this.card.items.length;
@@ -101,6 +116,11 @@ Vue.component('card', {
         },
         isLocked() {
             return !!this.card.completedAt;
+        }
+    },
+    mounted() {
+        if (!this.card.completedItems) {
+            this.$set(this.card, 'completedItems', this.completedItems);
         }
     }
 });
