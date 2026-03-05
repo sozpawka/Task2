@@ -1,32 +1,28 @@
 Vue.component('card-form', {
     props: ['cardData'],
     template: `
-      <div class="modal">
+        <div class="modal">
         <div class="modal-content">
-          <h3>Создать / Редактировать карточку</h3>
-          <label>
+            <h3>Создать / Редактировать карточку</h3>
+            <label>
             Заголовок:
             <input type="text" v-model="title" placeholder="Title" />
-          </label>
-
-          <div v-for="(item, index) in items" :key="index" class="item-input">
+            </label>
+            <div v-for="(item, index) in items" :key="index" class="item-input">
             <input type="text" v-model="items[index]" placeholder="Task" />
             <button @click="removeItem(index)" v-if="items.length > 3">-</button>
-          </div>
-
-          <button @click="addItem" :disabled="items.length >= 5">+ Add Item</button>
-
-          <p v-if="errors.length" class="errors">
+            </div>
+            <button @click="addItem" :disabled="items.length >= 5">+ Add Item</button>
+            <div v-if="errors.length" class="errors">
             <b>Ошибки:</b>
             <ul>
-              <li v-for="err in errors">{{ err }}</li>
+                <li v-for="err in errors" :key="err">{{ err }}</li>
             </ul>
-          </p>
-
-          <button @click="saveCard">Save</button>
-          <button @click="$emit('cancel')">Cancel</button>
+            </div>
+            <button @click="saveCard">Save</button>
+            <button @click="$emit('cancel')">Cancel</button>
         </div>
-      </div>
+        </div>
     `,
     data() {
         return {
@@ -37,21 +33,32 @@ Vue.component('card-form', {
     },
     methods: {
         addItem() {
-            if (this.items.length < 5) this.items.push('');
+            if (this.items.length < 5) {
+                this.items.push('');
+            }
         },
         removeItem(index) {
-            if (this.items.length > 3) this.items.splice(index, 1);
+            if (this.items.length > 3) {
+                this.items.splice(index, 1);
+            }
         },
         saveCard() {
             this.errors = [];
-            if (!this.title) this.errors.push("Заголовок обязателен");
-            if (this.items.slice(0,3).some(i => !i)) this.errors.push("Первые 3 пункта обязательны");
-            
+
+            if (!this.title) {
+                this.errors.push("Заголовок обязателен");
+            }
+
+            if (this.items.slice(0,3).some(i => !i)) {
+                this.errors.push("Первые 3 пункта обязательны");
+            }
+
             if (this.errors.length === 0) {
                 this.$emit('save', {
                     title: this.title,
                     items: this.items,
-                    completed: false,
+                    completedItems: this.cardData?.completedItems || this.items.map(() => false),
+                    completedAt: this.cardData?.completedAt || null,
                     id: this.cardData ? this.cardData.id : Date.now()
                 });
             }
@@ -62,52 +69,40 @@ Vue.component('card', {
     props: ['card'],
     template: `
         <div class="card" :class="{ 'completed-card': card.completedAt }">
-          <h4>{{ card.title }}</h4>
-          <ul>
-            <li v-for="(item, index) in card.items" :key="index">
-              <input type="checkbox" v-model="card.completedItems[index]" :disabled="card.completedAt" />
-              {{ item }}
-            </li>
-          </ul>
+            <h4>{{ card.title }}</h4>
 
-          <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: progress + '%' }">
-              {{ progress }}%
+            <ul>
+                <li v-for="(item, index) in card.items" :key="index">
+                <input type="checkbox" v-model="card.completedItems[index]" :disabled="card.completedAt" />
+                {{ item }}
+                </li>
+            </ul>
+
+            <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: progress + '%' }">
+                {{ progress }}%
+                </div>
             </div>
-          </div>
 
-          <button @click="$emit('complete')" :disabled="card.completedAt">
-            {{ card.completedAt ? 'Выполнено' : 'Выполнить' }}
-          </button>
-          <span v-if="card.completedAt" style="color: gray; margin-left: 10px;">
-            {{ card.completedAt }}
-          </span>
+            <button @click="$emit('complete')" :disabled="card.completedAt">
+                {{ card.completedAt ? 'Выполнено' : 'Выполнить' }}
+            </button>
+
+            <span v-if="card.completedAt" style="color: gray; margin-left: 10px;">
+                {{ card.completedAt }}
+            </span>
         </div>
     `,
-    data() {
-        return {
-            cardData: this.card,
-            completedItems: this.card.items.map(() => false)
-        }
-    },
-    mounted() {
-        if(!this.card.completedItems) this.$set(this.card, 'completedItems', this.completedItems)
-    },
     computed: {
-      percent() {
-          const total = this.card.items.length;
-          const completed = this.card.completedItems.filter(Boolean).length;
-          return Math.round((completed / total) * 100);
-      },
-      isLocked() {
-        return !!this.card.completedAt;
-    },
-      progress() {
-        const total = this.card.items.length;
-        const completed = this.card.completedItems.filter(Boolean).length;
-        return Math.round((completed / total) * 100);
-      }
-  },
+        progress() {
+            const total = this.card.items.length;
+            const completed = this.card.completedItems.filter(Boolean).length;
+            return Math.round((completed / total) * 100);
+        },
+        isLocked() {
+            return !!this.card.completedAt;
+        }
+    }
 });
 
 new Vue({
@@ -118,10 +113,21 @@ new Vue({
         editingCard: null,
         editingColumn: null
     },
+    mounted() {
+        const saved = localStorage.getItem('boardData');
+        if (saved) {
+            this.columns = JSON.parse(saved);
+        }
+    },
     methods: {
+        saveToStorage() {
+            localStorage.setItem('boardData', JSON.stringify(this.columns));
+        },
         addCard(column) {
-            if ((column === 1 && this.columns[1].length >= 3) || 
-                (column === 2 && this.columns[2].length >= 5)) {
+            if (
+                (column === 1 && this.columns[1].length >= 3) ||
+                (column === 2 && this.columns[2].length >= 5)
+            ) {
                 alert("Вы превысили максимум");
                 return;
             }
@@ -136,38 +142,42 @@ new Vue({
         },
         saveCard(card) {
             if (this.editingCard) {
-                const idx = this.columns[this.editingColumn].findIndex(c => c.id === card.id);
+                const idx = this.columns[this.editingColumn]
+                    .findIndex(c => c.id === card.id);
+
                 this.$set(this.columns[this.editingColumn], idx, card);
             } else {
                 this.columns[this.editingColumn].push(card);
             }
             this.showForm = false;
             this.editingCard = null;
+            this.saveToStorage();
         },
         cancelForm() {
             this.showForm = false;
             this.editingCard = null;
         },
         markComplete(column, index) {
-          const card = this.columns[column][index];
-          const total = card.items.length;
-          const completed = card.completedItems.filter(Boolean).length;
-          const percent = (completed / total) * 100;
-          if (percent === 100) {
-              this.columns[3].push(card);
-              this.columns[column].splice(index, 1);
-              card.completedAt = new Date().toLocaleString();
-              return;
-          }
-          if (column === 1 && percent >= 50 && this.columns[2].length < 5) {
-              this.columns[2].push(card);
-              this.columns[1].splice(index, 1);
-          }
-          if (column === 2 && percent === 100) {
-              this.columns[3].push(card);
-              this.columns[2].splice(index, 1);
-              card.completedAt = new Date().toLocaleString();
-          }
-      }
+            const card = this.columns[column][index];
+            const total = card.items.length;
+            const completed = card.completedItems.filter(Boolean).length;
+            const percent = Math.round((completed / total) * 100);
+            if (percent === 100) {
+                card.completedAt = new Date().toLocaleString();
+                this.columns[3].push(card);
+                this.columns[column].splice(index, 1);
+                this.saveToStorage();
+                return;
+            }
+            if (column === 1 && percent >= 50 && this.columns[2].length < 5) {
+                this.columns[2].push(card);
+                this.columns[1].splice(index, 1);
+                this.saveToStorage();
+                return;
+            }
+
+            this.saveToStorage();
+        }
+
     }
 });
