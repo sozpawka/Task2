@@ -27,7 +27,8 @@
         v-for="(card, index) in columns[1]" 
         :key="card.id" 
         :card="card"
-        @complete="markComplete(1, index)">
+        @complete="markComplete(1, index)"
+        @delete="columns[1].splice(index, 1); saveToStorage()">
       </card>
     </div>
 
@@ -38,7 +39,8 @@
         v-for="(card, index) in columns[2]" 
         :key="card.id" 
         :card="card"
-        @complete="markComplete(2, index)">
+        @complete="markComplete(2, index)"
+        @delete="columns[2].splice(index, 1); saveToStorage()">
       </card>
     </div>
 
@@ -49,7 +51,8 @@
         v-for="(card, index) in columns[3]" 
         :key="card.id" 
         :card="card"
-        @complete="markComplete(3, index)">
+        @complete="markComplete(3, index)"
+        @delete="columns[3].splice(index, 1); saveToStorage()">
       </card>
     </div>
   </div>

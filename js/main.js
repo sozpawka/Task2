@@ -98,6 +98,10 @@ Vue.component('card', {
                 {{ card.completedAt ? 'Выполнено' : 'Выполнить' }}
             </button>
 
+            <button @click="$emit('delete')" style="margin-left: 10px; background: red; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Удалить
+            </button>
+
             <span v-if="card.completedAt" style="color: gray; margin-left: 10px;">
                 {{ card.completedAt }}
             </span>
