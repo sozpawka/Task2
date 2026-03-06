@@ -74,55 +74,48 @@ Vue.component('card-form', {
     }
 });
 Vue.component('card', {
-    props: ['card'],
+    props: ['card', 'column'],
     template: `
-        <div class="card" :class="{ 'completed-card': card.completedAt }" :style="{ backgroundImage: 'url(' + card.theme + ')' }">
+        <div class="card" :style="{ backgroundImage: 'url(' + card.theme + ')' }">
             <h4>{{ card.title }}</h4>
 
             <ul>
                 <li v-for="(item, index) in card.items" :key="index">
-                <input type="checkbox" v-model="card.completedItems[index]" :disabled="card.completedAt" />
-                {{ item }}
+                    <input type="checkbox"
+                        :checked="card.completedItems[index]"
+                        @change="toggleItem(index, $event)"
+                        :disabled="column !== 1 || card.completedItems[index]"
+                    />
+                    {{ item }}
                 </li>
             </ul>
 
             <div class="progress-bar">
                 <div class="progress-fill" :style="{ width: progress + '%' }">
-                {{ progress }}%
+                    {{ progress }}%
                 </div>
             </div>
-
-            <button @click="$emit('complete')" :disabled="card.completedAt">
-                {{ card.completedAt ? 'Выполнено' : 'Выполнить' }}
-            </button>
 
             <button @click="$emit('delete')" class="delete-btn">
                 Удалить
             </button>
-
-            <span v-if="card.completedAt" class="completed-date">
-                {{ card.completedAt }}
-            </span>
         </div>
     `,
-    data() {
-        return {
-            completedItems: this.card.completedItems || this.card.items.map(() => false)
-        }
-    },
     computed: {
         progress() {
-            const total = this.card.items.length;
-            const completed = this.card.completedItems.filter(Boolean).length;
-            return Math.round((completed / total) * 100);
-        },
-        isLocked() {
-            return !!this.card.completedAt;
+            const total = this.card.items.length
+            const completed = this.card.completedItems.filter(Boolean).length
+            return Math.round((completed / total) * 100)
         }
     },
-    mounted() {
-        if (!this.card.completedItems) {
-            this.$set(this.card, 'completedItems', this.completedItems);
+    methods: {
+        toggleItem(index, event) {
+            if (this.card.completedItems[index]) {
+                event.preventDefault()
+                return
+            }
+            this.$set(this.card.completedItems, index, true)
+            this.$emit('progress')
         }
     }
 });
