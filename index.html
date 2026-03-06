@@ -12,50 +12,7 @@
 </head>
 <body>
 <div id="app">
-  <card-form 
-    v-if="showForm" 
-    :cardData="editingCard" 
-    @save="saveCard" 
-    @cancel="cancelForm">
-  </card-form>
-
-  <div class="board">
-    <div class="column">
-      <h2>Колонка 1 (макс 3)</h2>
-      <button class="add-card" @click="addCard(1)">+ Add Card</button>
-      <card 
-        v-for="(card, index) in columns[1]" 
-        :key="card.id" 
-        :card="card"
-        @complete="markComplete(1, index)"
-        @delete="columns[1].splice(index, 1); saveToStorage()">
-      </card>
-    </div>
-
-    <div class="column">
-      <h2>Колонка 2 (макс 5)</h2>
-      <button class="add-card" @click="addCard(2)">+ Add Card</button>
-      <card 
-        v-for="(card, index) in columns[2]" 
-        :key="card.id" 
-        :card="card"
-        @complete="markComplete(2, index)"
-        @delete="columns[2].splice(index, 1); saveToStorage()">
-      </card>
-    </div>
-
-    <div class="column">
-      <h2>Колонка 3</h2>
-      <button class="add-card" @click="addCard(3)">+ Add Card</button>
-      <card 
-        v-for="(card, index) in columns[3]" 
-        :key="card.id" 
-        :card="card"
-        @complete="markComplete(3, index)"
-        @delete="columns[3].splice(index, 1); saveToStorage()">
-      </card>
-    </div>
-  </div>
+    <html></html>
 </div>
 </body>
 </html>

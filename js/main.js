@@ -46,7 +46,7 @@ Vue.component('card-form', {
                 { name: 'Blue', file: 'assets/blue.jpg' },
                 { name: 'Gold', file: 'assets/gold.jpg' }
             ],
-            selectedTheme: this.cardData?.theme || 'assets/orange.jpg'
+            selectedTheme: this.cardData && this.cardData.theme ? this.cardData.theme : 'assets/orange.jpg'
         }
     },
     methods: {
@@ -60,7 +60,6 @@ Vue.component('card-form', {
             this.errors = [];
             if (!this.title) this.errors.push("Заголовок обязателен");
             if (this.items.slice(0,3).some(i => !i)) this.errors.push("Первые 3 пункта обязательны");
-
             if (this.errors.length === 0) {
                 this.$emit('save', {
                     title: this.title,
@@ -77,8 +76,7 @@ Vue.component('card-form', {
 Vue.component('card', {
     props: ['card'],
     template: `
-        <div class="card" :class="{ 'completed-card': card.completedAt }"
-             :style="{ backgroundImage: 'url(' + card.theme + ')', backgroundSize: 'cover', backgroundPosition: 'center' }">
+        <div class="card" :class="{ 'completed-card': card.completedAt }" :style="{ backgroundImage: 'url(' + card.theme + ')' }">
             <h4>{{ card.title }}</h4>
 
             <ul>
@@ -98,11 +96,11 @@ Vue.component('card', {
                 {{ card.completedAt ? 'Выполнено' : 'Выполнить' }}
             </button>
 
-            <button @click="$emit('delete')" style="margin-left: 10px; background: red; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            <button @click="$emit('delete')" class="delete-btn">
                 Удалить
             </button>
 
-            <span v-if="card.completedAt" style="color: gray; margin-left: 10px;">
+            <span v-if="card.completedAt" class="completed-date">
                 {{ card.completedAt }}
             </span>
         </div>
@@ -129,13 +127,83 @@ Vue.component('card', {
     }
 });
 
-new Vue({
-    el: '#app',
-    data: {
-        columns: { 1: [], 2: [], 3: [] },
-        showForm: false,
-        editingCard: null,
-        editingColumn: null
+Vue.component('html', {
+    template: `
+        <div>
+
+        <card-form 
+            v-if="showForm" 
+            :cardData="editingCard" 
+            @save="saveCard" 
+            @cancel="cancelForm">
+        </card-form>
+
+        <div class="board">
+
+            <div class="column">
+                <h2>Колонка 1 (макс 3)</h2>
+
+                <button class="add-card" @click="addCard(1)">
+                + Add Card
+                </button>
+
+                <card 
+                    v-for="(card, index) in columns[1]" 
+                    :key="card.id" 
+                    :card="card"
+                    @complete="markComplete(1, index)"
+                    @delete="deleteCard(1, index)">
+                </card>
+
+            </div>
+
+            <div class="column">
+
+                <h2>Колонка 2 (макс 5)</h2>
+
+                <button class="add-card" @click="addCard(2)">
+                + Add Card
+                </button>
+
+                <card 
+                    v-for="(card, index) in columns[2]" 
+                    :key="card.id" 
+                    :card="card"
+                    @complete="markComplete(2, index)"
+                    @delete="deleteCard(2, index)">
+                </card>
+
+            </div>
+
+            <div class="column">
+
+                <h2>Колонка 3</h2>
+
+                <button class="add-card" @click="addCard(3)">
+                + Add Card
+                </button>
+
+                <card 
+                    v-for="(card, index) in columns[3]" 
+                    :key="card.id" 
+                    :card="card"
+                    @complete="markComplete(3, index)"
+                    @delete="deleteCard(3, index)">
+                </card>
+
+            </div>
+
+        </div>
+
+        </div>
+    `,
+    data() {
+        return {
+            columns: { 1: [], 2: [], 3: [] },
+            showForm: false,
+            editingCard: null,
+            editingColumn: null
+        }
     },
     mounted() {
         const saved = localStorage.getItem('boardData');
@@ -159,18 +227,13 @@ new Vue({
             this.editingColumn = column;
             this.showForm = true;
         },
-        editCard(column, index) {
-            this.editingCard = this.columns[column][index];
-            this.editingColumn = column;
-            this.showForm = true;
-        },
         saveCard(card) {
             if (this.editingCard) {
                 const idx = this.columns[this.editingColumn]
                     .findIndex(c => c.id === card.id);
-
                 this.$set(this.columns[this.editingColumn], idx, card);
-            } else {
+            }
+            else {
                 this.columns[this.editingColumn].push(card);
             }
             this.showForm = false;
@@ -180,6 +243,10 @@ new Vue({
         cancelForm() {
             this.showForm = false;
             this.editingCard = null;
+        },
+        deleteCard(column, index) {
+            this.columns[column].splice(index, 1);
+            this.saveToStorage();
         },
         markComplete(column, index) {
             const card = this.columns[column][index];
@@ -204,4 +271,7 @@ new Vue({
         }
 
     }
+});
+new Vue({
+    el: '#app'
 });
