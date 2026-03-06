@@ -127,7 +127,7 @@ Vue.component('card', {
     }
 });
 
-Vue.component('html', {
+Vue.component('htmljs', {
     template: `
         <div>
 
